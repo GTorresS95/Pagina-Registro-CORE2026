@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Control de Asistencia</title>
+
+  <script src="https://unpkg.com/html5-qrcode"></script>
+
+  <style>
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f4f4f4;
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    select,
+    button {
+      width: 100%;
+      max-width: 400px;
+      padding: 12px;
+      margin: 8px 0;
+      font-size: 16px;
+    }
+
+    #reader {
+      width: 100%;
+      max-width: 500px;
+      margin: 20px auto;
+      background: white;
+    }
+
+    #resultado {
+      max-width: 500px;
+      margin: 20px auto;
+      padding: 15px;
+      font-size: 18px;
+      background: white;
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+  <h1>Control de Asistencia</h1>
+
+  <select id="taller">
+
+    <option value="">Seleccionar taller</option>
+
+    <option value="BLND3D">BLND3D</option>
+    <option value="BLND2D">BLND2D</option>
+    <option value="CLINPA">CLINPA</option>
+    <option value="DGODOT">DGODOT</option>
+    <option value="DESFSG">DESFSG</option>
+    <option value="GOEAEN">GOEAEN</option>
+    <option value="LDINTI">LDINTI</option>
+
+  </select>
+
+  <button onclick="iniciarScanner()">
+    Iniciar cámara
+  </button>
+
+  <div id="reader"></div>
+
+  <div id="resultado">
+    Selecciona un taller y después inicia la cámara.
+  </div>
+
+
+  <script>
+
+    let scanner = null;
+    let procesando = false;
+
+    function iniciarScanner() {
+
+      const taller =
+        document.getElementById('taller').value;
+
+      if (!taller) {
+
+        mostrarResultado(
+          'Selecciona primero un taller.'
+        );
+
+        return;
+      }
+
+      if (scanner) {
+        return;
+      }
+
+      scanner =
+        new Html5Qrcode('reader');
+
+      scanner.start(
+        {
+          facingMode: 'environment'
+        },
+        {
+          fps: 10,
+          qrbox: {
+            width: 250,
+            height: 250
+          }
+        },
+        onScanSuccess,
+        onScanError
+      )
+      .catch(function(error) {
+
+        mostrarResultado(
+          'No se pudo iniciar la cámara: ' +
+          error
+        );
+
+        scanner = null;
+
+      });
+
+    }
+
+
+    function onScanSuccess(decodedText) {
+
+      if (procesando) {
+        return;
+      }
+
+      procesando = true;
+
+      const taller =
+        document.getElementById('taller').value;
+
+      mostrarResultado(
+        'QR detectado: ' +
+        decodedText +
+        '<br>Registrando asistencia...'
+      );
+
+      enviarAsistencia(
+        decodedText,
+        taller
+      );
+
+    }
+
+
+    function onScanError(error) {
+      // Ignorar errores normales de búsqueda de QR
+    }
+
+
+    function enviarAsistencia(id, taller) {
+
+      // Esta URL la colocaremos después
+      const URL_BACKEND =
+        'https://script.google.com/macros/s/AKfycbxHl5FuITA0mZ5uPGhy5BAmkRVIHV6wf-sVn6dyL0JL5piABsAhrlUdL6IK_kJhkLm50A/exec';
+
+      fetch(
+        URL_BACKEND,
+        {
+          method: 'POST',
+
+          headers: {
+            'Content-Type': 'text/plain'
+          },
+
+          body: JSON.stringify({
+            id: id,
+            taller: taller
+          })
+
+        }
+      )
+
+      .then(function(response) {
+        return response.json();
+      })
+
+      .then(function(data) {
+
+        if (data.ok) {
+
+          mostrarResultado(
+            '✅ ' +
+            data.mensaje +
+            '<br><br>' +
+            'ID: ' + data.id +
+            '<br>' +
+            'Nombre: ' + data.nombre
+          );
+
+        } else {
+
+          mostrarResultado(
+            '⚠️ ' +
+            data.mensaje +
+            (data.nombre
+              ? '<br><br>Nombre: ' + data.nombre
+              : '')
+          );
+
+        }
+
+        setTimeout(
+          function() {
+            procesando = false;
+          },
+          2000
+        );
+
+      })
+
+      .catch(function(error) {
+
+        mostrarResultado(
+          '❌ Error de comunicación con el servidor.'
+        );
+
+        console.error(error);
+
+        setTimeout(
+          function() {
+            procesando = false;
+          },
+          2000
+        );
+
+      });
+
+    }
+
+
+    function mostrarResultado(mensaje) {
+
+      document.getElementById(
+        'resultado'
+      ).innerHTML = mensaje;
+
+    }
+
+  </script>
+
+</body>
+
+</html>
