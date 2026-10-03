@@ -31,25 +31,32 @@
     select,
     button {
       width: 100%;
-      max-width: 400px;
+      max-width: 500px;
       padding: 12px;
       margin: 8px 0;
       font-size: 16px;
+      box-sizing: border-box;
+    }
+
+    #resultado {
+      width: 100%;
+      max-width: 500px;
+      margin: 20px auto 10px auto;
+      padding: 15px;
+      box-sizing: border-box;
+      font-size: 18px;
+      background: white;
+      border-radius: 8px;
+      min-height: 25px;
     }
 
     #reader {
       width: 100%;
       max-width: 500px;
-      margin: 20px auto;
+      margin: 0 auto;
       background: white;
-    }
-
-    #resultado {
-      max-width: 500px;
-      margin: 20px auto;
-      padding: 15px;
-      font-size: 18px;
-      background: white;
+      border-radius: 8px;
+      overflow: hidden;
     }
 
   </style>
@@ -62,33 +69,63 @@
 
   <select id="taller">
 
-    <option value="">Seleccionar taller</option>
+    <option value="">
+      Seleccionar taller
+    </option>
 
-    <option value="BLND3D">BLND3D</option>
-    <option value="BLND2D">BLND2D</option>
-    <option value="CLINPA">CLINPA</option>
-    <option value="DGODOT">DGODOT</option>
-    <option value="DESFSG">DESFSG</option>
-    <option value="GOEAEN">GOEAEN</option>
-    <option value="LDINTI">LDINTI</option>
+    <option value="BLND3D">
+      Modelado 3D con Blender
+    </option>
+
+    <option value="BLND2D">
+      Animación Digital 2D con Blender
+    </option>
+
+    <option value="CLINPA">
+      Pruebas estadísticas para la clasificación inteligente de patrones en aprendizaje automático
+    </option>
+
+    <option value="DGODOT">
+      Desarrollo de shaders en Godot para videojuegos
+    </option>
+
+    <option value="DESFSG">
+      Desarrollo de software seguro
+    </option>
+
+    <option value="GOEAEN">
+      Introducción a Google Earth Engine
+    </option>
+
+    <option value="LDINTI">
+      Liderazgo para la innovación en TI
+    </option>
 
   </select>
+
 
   <button onclick="iniciarScanner()">
     Iniciar cámara
   </button>
 
-  <div id="reader"></div>
+
+  <!--
+    El resultado aparece ANTES de la cámara
+  -->
 
   <div id="resultado">
     Selecciona un taller y después inicia la cámara.
   </div>
 
 
+  <div id="reader"></div>
+
+
   <script>
 
     let scanner = null;
     let procesando = false;
+
 
     function iniciarScanner() {
 
@@ -98,39 +135,55 @@
       if (!taller) {
 
         mostrarResultado(
-          'Selecciona primero un taller.'
+          '⚠️ Selecciona primero un taller.'
         );
 
         return;
       }
+
 
       if (scanner) {
         return;
       }
 
+
+      mostrarResultado(
+        '📷 Iniciando cámara...'
+      );
+
+
       scanner =
         new Html5Qrcode('reader');
 
+
       scanner.start(
+
         {
           facingMode: 'environment'
         },
+
         {
           fps: 10,
+
           qrbox: {
             width: 250,
             height: 250
           }
         },
+
         onScanSuccess,
+
         onScanError
+
       )
+
       .catch(function(error) {
 
         mostrarResultado(
-          'No se pudo iniciar la cámara: ' +
-          error
+          '❌ No se pudo iniciar la cámara.'
         );
+
+        console.error(error);
 
         scanner = null;
 
@@ -147,14 +200,16 @@
 
       procesando = true;
 
+
       const taller =
         document.getElementById('taller').value;
 
+
       mostrarResultado(
-        'QR detectado: ' +
-        decodedText +
-        '<br>Registrando asistencia...'
+        '🔎 QR detectado<br>' +
+        'Verificando asistencia...'
       );
+
 
       enviarAsistencia(
         decodedText,
@@ -165,19 +220,22 @@
 
 
     function onScanError(error) {
-      // Ignorar errores normales de búsqueda de QR
+      // Ignorar errores normales de búsqueda
     }
 
 
     function enviarAsistencia(id, taller) {
 
-      // Esta URL la colocaremos después
       const URL_BACKEND =
         'https://script.google.com/macros/s/AKfycbxHl5FuITA0mZ5uPGhy5BAmkRVIHV6wf-sVn6dyL0JL5piABsAhrlUdL6IK_kJhkLm50A/exec';
 
+
       fetch(
+
         URL_BACKEND,
+
         {
+
           method: 'POST',
 
           headers: {
@@ -185,64 +243,107 @@
           },
 
           body: JSON.stringify({
+
             id: id,
+
             taller: taller
+
           })
 
         }
+
       )
 
       .then(function(response) {
+
         return response.json();
+
       })
 
       .then(function(data) {
 
+
         if (data.ok) {
 
           mostrarResultado(
+
             '✅ ' +
             data.mensaje +
+
             '<br><br>' +
-            'ID: ' + data.id +
+
+            'ID: ' +
+            data.id +
+
             '<br>' +
-            'Nombre: ' + data.nombre
+
+            'Nombre: ' +
+            data.nombre
+
           );
+
 
         } else {
 
           mostrarResultado(
+
             '⚠️ ' +
             data.mensaje +
-            (data.nombre
-              ? '<br><br>Nombre: ' + data.nombre
-              : '')
+
+            (
+
+              data.nombre
+
+              ? '<br><br>Nombre: ' +
+                data.nombre
+
+              : ''
+
+            )
+
           );
 
         }
 
+
         setTimeout(
+
           function() {
+
             procesando = false;
+
           },
+
           2000
+
         );
 
       })
 
+
       .catch(function(error) {
 
+
         mostrarResultado(
+
           '❌ Error de comunicación con el servidor.'
+
         );
+
 
         console.error(error);
 
+
         setTimeout(
+
           function() {
+
             procesando = false;
+
           },
+
           2000
+
         );
 
       });
