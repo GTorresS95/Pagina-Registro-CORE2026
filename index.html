@@ -226,129 +226,71 @@
 
     function enviarAsistencia(id, taller) {
 
-      const URL_BACKEND =
-        'https://script.google.com/macros/s/AKfycbwzr3wBqUFu5UxNnyMqGTWluxZ4WwT7Z-L0F5BT4CFm2WCY2jpWVz4YdP3FHnL7qfcQxg/exec';
+  const URL_BACKEND =
+    'https://script.google.com/macros/s/AKfycbwzr3wBqUFu5UxNnyMqGTWluxZ4WwT7Z-L0F5BT4CFm2WCY2jpWVz4YdP3FHnL7qfcQxg/exec';
 
-
-      fetch(
-
-        URL_BACKEND,
-
-        {
-
-          method: 'POST',
-
-          headers: {
-            'Content-Type': 'text/plain'
-          },
-
-          body: JSON.stringify({
-
-            id: id,
-
-            taller: taller
-
-          })
-
-        }
-
-      )
-
-      .then(function(response) {
-
-        return response.json();
-
+  fetch(
+    URL_BACKEND,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        id: id,
+        taller: taller
       })
-
-      .then(function(data) {
-
-
-        if (data.ok) {
-
-          mostrarResultado(
-
-            '✅ ' +
-            data.mensaje +
-
-            '<br><br>' +
-
-            'ID: ' +
-            data.id +
-
-            '<br>' +
-
-            'Nombre: ' +
-            data.nombre
-
-          );
-
-
-        } else {
-
-          mostrarResultado(
-
-            '⚠️ ' +
-            data.mensaje +
-
-            (
-
-              data.nombre
-
-              ? '<br><br>Nombre: ' +
-                data.nombre
-
-              : ''
-
-            )
-
-          );
-
-        }
-
-
-        setTimeout(
-
-          function() {
-
-            procesando = false;
-
-          },
-
-          2000
-
-        );
-
-      })
-
-
-      .catch(function(error) {
-
-
-        mostrarResultado(
-
-          '❌ Error de comunicación con el servidor.'
-
-        );
-
-
-        console.error(error);
-
-
-        setTimeout(
-
-          function() {
-
-            procesando = false;
-
-          },
-
-          2000
-
-        );
-
-      });
-
     }
+  )
+  .then(function(response) {
+    return response.json();
+  })
+  .then(function(data) {
+
+    if (data.ok) {
+
+      mostrarResultado(
+        '✅ ' +
+        data.mensaje +
+        '<br><br>' +
+        'ID: ' + data.id +
+        '<br>' +
+        'Nombre: ' + data.nombre
+      );
+
+    } else {
+
+      mostrarResultado(
+        '⚠️ ' +
+        data.mensaje +
+        (data.nombre
+          ? '<br><br>Nombre: ' + data.nombre
+          : '')
+      );
+    }
+
+    setTimeout(
+      function() {
+        procesando = false;
+      },
+      2000
+    );
+
+  })
+  .catch(function(error) {
+
+    mostrarResultado(
+      '❌ Error de comunicación con el servidor.'
+    );
+
+    console.error(error);
+
+    setTimeout(
+      function() {
+        procesando = false;
+      },
+      2000
+    );
+
+  });
+}
 
 
     function mostrarResultado(mensaje) {
