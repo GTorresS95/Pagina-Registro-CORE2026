@@ -237,10 +237,14 @@
     }
 
 
-    function enviarAsistencia(id, taller) {
+
+function enviarAsistencia(id, taller) {
 
   const URL_BACKEND =
     'https://script.google.com/macros/s/AKfycbwzr3wBqUFu5UxNnyMqGTWluxZ4WwT7Z-L0F5BT4CFm2WCY2jpWVz4YdP3FHnL7qfcQxg/exec';
+
+  const tipoRegistro =
+    document.getElementById('tipoRegistro').value;
 
   fetch(
     URL_BACKEND,
@@ -248,7 +252,8 @@
       method: 'POST',
       body: JSON.stringify({
         id: id,
-        taller: taller
+        taller: taller,
+        tipoRegistro: tipoRegistro
       })
     }
   )
@@ -304,6 +309,7 @@
 
   });
 }
+
 
 
     function mostrarResultado(mensaje) {
